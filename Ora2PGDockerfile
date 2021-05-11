@@ -1,0 +1,46 @@
+FROM perl:slim
+
+ARG ORA2PG_VERSION=21.0
+ARG ORA2PG_HASH=607179813b79c105de8934f75e426fccb69c41d4
+
+# Install General Requirements
+RUN apt-get update \
+    && apt-get install wget -y \
+    && apt-get install unzip -y \
+    && apt-get clean
+
+# Install ora2pg
+RUN wget --output-document=/tmp/ora2pg.zip https://github.com/darold/ora2pg/archive/${ORA2PG_HASH}.zip
+RUN unzip -d /tmp/ /tmp/ora2pg.zip
+RUN cd /tmp/ora2pg-${ORA2PG_HASH}/ && perl Makefile.PL && make && make install
+
+# Install Oracle12 ODBC required packages
+ENV ORACLE_SID oracle
+ENV ORACLE_ODBC_VERSION 12.2
+ENV ORACLE_HOME /usr/lib/oracle/${ORACLE_ODBC_VERSION}/client64
+
+RUN apt-get -y install --fix-missing --upgrade vim alien unixodbc-dev wget libaio1 libaio-dev
+
+COPY oracle/*.rpm ./
+RUN alien -i *.rpm && rm *.rpm \
+    && echo "/usr/lib/oracle/${ORACLE_ODBC_VERSION}/client64/lib/" > /etc/ld.so.conf.d/oracle.conf \
+    && ln -s /usr/include/oracle/${ORACLE_ODBC_VERSION}/client64 $ORACLE_HOME/include \
+    && ldconfig -v
+
+# Instal DBI module with Orcle, Postgres and Compress::Zlib module
+RUN perl -MCPAN -e 'install DBI' &&\
+    perl -MCPAN -e 'install DBD::Pg' &&\
+    perl -MCPAN -e 'install DBD::Oracle' &&\
+    perl -MCPAN -e 'install Bundle::Compress::Zlib'
+
+
+# Create Directories
+RUN mkdir /config /data
+RUN ln -s /config/ora2pg.conf /etc/ora2pg/ora2pg.conf
+
+VOLUME /config
+VOLUME /data
+
+WORKDIR /
+
+CMD ["ora2pg"]
