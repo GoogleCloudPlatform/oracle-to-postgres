@@ -36,7 +36,7 @@ The Docker images which are built are as follows
 - [Ora2Pg](http://ora2pg.darold.net/): A docker image which is used to run Ora2Pg.
 - GCloud: For more recent APIs we use a docker gcloud to ensure the latest version of gcloud
 - Datastream management: This image is used to list, deploy, and delete Datastream resources.
-- Data validation: An image built from Google's open source Data Validation tooling.
+- [Data validation](https://github.com/GoogleCloudPlatform/professional-services-data-validator): An image built from Google's open source Data Validation tooling.
 
 ### Deploying Resources (make deploy-resources)
 
