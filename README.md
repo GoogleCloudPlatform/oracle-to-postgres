@@ -63,11 +63,11 @@ Once a schema is applied, future runs of the same schema will fail. If you need 
 ### Deploying Datastream (make deploy-datastream)
 
 When your schema has been applied, you are ready to begin data replication.  The datastream deployment stage will create a set of connection profiles and a stream using your supplied configuration.
-If you wish to perform this stage manually in the UI, please feel free to follow the steps outlined in the Datastream Quickstart and Documentation.
+If you wish to perform this stage manually in the UI, please feel free to follow the steps outlined in the [Datastream Quickstart and Documentation](https://cloud.google.com/datastream/docs/quickstart).
 
 #### Private Connectivity
 
-To use the PrivateConnection feature in Datastream, begin by creating a PrivateConnection in the UI.  You will then be able to add this reference in your Makefile to be used in the Datastream creation.
+To use the [PrivateConnection feature in Datastream](https://cloud.google.com/datastream/docs/create-a-private-connectivity-configuration), begin by creating a PrivateConnection in the UI.  You will then be able to add this reference in your Makefile to be used in the Datastream creation.
 
 ### Deploying Dataflow (make deploy-dataflow)
 
@@ -89,4 +89,4 @@ To redeploy data replication you should first cancel the old Dataflow job. When 
 Once your data appears to be replicating (or before) you can run data validation to check on the row count comparisons between each source and target table.
 Running validation will allow you to understand when you replication is up to date and during the cutover allow you to validate all data matches before starting a cutover.
 
-For more details on the options around Data Validation, please see the open source Data Validation Tool documentation.
+For more details on the options around Data Validation, please see the open source [Data Validation Tool documentation](https://github.com/GoogleCloudPlatform/professional-services-data-validator).
