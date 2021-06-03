@@ -21,10 +21,8 @@ steps:
 - id: oracle
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
   args: ["mv", "/oracle", "/workspace/"]
-- id: make
+- id: build
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
   args: ["make", "build"]
-  env:
-  - "NOX_SESSION=lint"
   waitFor: ['oracle']
 
