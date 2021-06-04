@@ -22,6 +22,7 @@ export GCS_BUCKET?=gs://${PROJECT_ID}
 export PUBSUB_TOPIC?=${STREAM_NAME}
 export PUBSUB_SUBSCRIPTION?=${PUBSUB_TOPIC}-subscription
 
+export CLOUD_SQL?=<Cloud SQL>
 export DATABASE_USER?=postgres
 export DATABASE_PASSWORD?=postgres
 
@@ -30,6 +31,8 @@ export ORACLE_PORT?=1521
 export ORACLE_USER?=system
 export ORACLE_PASSWORD?=oracle
 export ORACLE_DATABASE?=XE
+
+export ORACLE_DSN:=dbi:Oracle:host=${ORACLE_HOST};sid=${ORACLE_DATABASE};port=${ORACLE_PORT}
 
 # The PrivateConnection, in the format:
 # projects/${PROJECT_ID}/locations/${REGION}/privateConnections/<PRIVATE_CONNECTION>
@@ -86,10 +89,10 @@ list: variables
 
 build: variables
 	echo "Build Oracle to Postgres Docker Images: ${PROJECT_ID}"
+	docker pull gcr.io/google.com/cloudsdktool/cloud-sdk:latest
 	./data_validation.sh build
 	docker build datastream_utils/ -t datastream
 	./ora2pg.sh build
-	docker pull gcr.io/google.com/cloudsdktool/cloud-sdk:latest
 
 deploy-resources: variables
 	echo "Deploy Oracle to Postgres Resources: ${PROJECT_ID}"

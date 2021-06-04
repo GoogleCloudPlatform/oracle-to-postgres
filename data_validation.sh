@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export DATABASE_HOST=$(gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}" | awk '{print $6;}')
+export DATABASE_HOST=$(docker run gcr.io/google.com/cloudsdktool/cloud-sdk:latest gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}" | awk '{print $6;}')
 
 if [ "$1" == "build" ]
 then

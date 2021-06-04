@@ -193,9 +193,11 @@ class CloudDatastreamResourceManager(object):
       raise ValueError(str(stream_op_result))
 
     logging.info("Starting CDC stream on Datastream")
-    stream_result = self._StartStream(self.full_stream_name)
-    if stream_result.error:
-      raise ValueError(str(stream_result.error))
+    result = self._UpdateStreamState(
+        self.full_stream_name, datastream.Stream.StateValueValuesEnum.RUNNING)
+
+    if result.error:
+      raise ValueError(str(result.error))
 
   def TearDown(self):
     """Stop and delete all resources started in SetUp.
@@ -225,6 +227,15 @@ class CloudDatastreamResourceManager(object):
       logging.info(stream_log)
       logging.info(stream_cp_source_log)
       logging.info(stream_cp_dest_log)
+
+  def _UpdateStreamState(self, stream_name, state):
+    request = datastream.DatastreamProjectsLocationsStreamsPatchRequest(
+        name=stream_name,
+        stream=datastream.Stream(state=state),
+        updateMask="state")
+
+    response = self.client.projects_locations_streams.Patch(request)
+    return self._WaitForCompletion(response)
 
   def _WaitForCompletion(self, response, timeout=120):
     # After requesting an operation, we need to wait for its completion
@@ -256,11 +267,9 @@ class CloudDatastreamResourceManager(object):
       return None
 
   def _StopAndDeleteStream(self, stream_name):
-    stop_request = datastream.DatastreamProjectsLocationsStreamsPauseRequest(
-        name=stream_name)
-
     try:
-      self.client.projects_locations_streams.Pause(stop_request)
+      self._UpdateStreamState(stream_name,
+                              datastream.Stream.StateValueValuesEnum.PAUSED)
     except datastream.HttpError:
       logging.exception("There was an issue stopping Datastream stream %r.",
                         stream_name)
