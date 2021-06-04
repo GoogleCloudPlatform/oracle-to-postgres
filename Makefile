@@ -13,42 +13,41 @@
 # limitations under the License.
 
 
-export PROJECT_ID:=<PROJECT_ID>
-export PROJECT_NUMBER:=<PROJECT_NUMBER>
-export REGION:=<REGION>
+export PROJECT_ID?=<PROJECT_ID>
+export PROJECT_NUMBER?=<PROJECT_NUMBER>
+export REGION?=us-central1
 
-export STREAM_NAME:=<STREAM_NAME>
-export GCS_BUCKET:=<GCS_BUCKET>
-export PUBSUB_TOPIC:=${STREAM_NAME}
-export PUBSUB_SUBSCRIPTION:=${PUBSUB_TOPIC}-subscription
+export STREAM_NAME?=oracle-to-postgres
+export GCS_BUCKET?=gs://${PROJECT_ID}
+export PUBSUB_TOPIC?=${STREAM_NAME}
+export PUBSUB_SUBSCRIPTION?=${PUBSUB_TOPIC}-subscription
 
-export CLOUD_SQL:=<CLOUD_SQL>
-export DATABASE_USER:=<DATABASE_USER>
-export DATABASE_PASSWORD:=<DATABASE_PASSWORD>
+export DATABASE_USER?=postgres
+export DATABASE_PASSWORD?=postgres
 
-export ORACLE_HOST:=<ORACLE_HOST>
-export ORACLE_PORT:=<ORACLE_PORT>
-export ORACLE_USER:=<ORACLE_USER>
-export ORACLE_PASSWORD:=<ORACLE_PASSWORD>
-export ORACLE_DATABASE:=<ORACLE_DATABASE>
+export ORACLE_HOST?=<ORACLE_HOST>
+export ORACLE_PORT?=1521
+export ORACLE_USER?=system
+export ORACLE_PASSWORD?=oracle
+export ORACLE_DATABASE?=XE
 
 # The PrivateConnection, in the format:
 # projects/${PROJECT_ID}/locations/${REGION}/privateConnections/<PRIVATE_CONNECTION>
-export PRIVATE_CONNECTION_NAME:="<PRIVATE_CONNECTION_NAME>"
+export PRIVATE_CONNECTION_NAME?=""
 
 # Desired Oracle Schemas and object types to replicate
 # For schemas, leave blank for all.
-export ORACLE_SCHEMAS:=<ORACLE_SCHEMAS>
-export ORACLE_TYPES:=TABLE VIEW
+export ORACLE_SCHEMAS?=
+export ORACLE_TYPES?=TABLE VIEW
 
 # Oracle host for DataStream incase this is different from local
-export ORACLE_DATASTREAM_HOST:=<ORACLE_DATASTREAM_HOST>
-export ORACLE_DATASTREAM_PORT:=<ORACLE_DATASTREAM_PORT>
+export ORACLE_DATASTREAM_HOST?=${ORACLE_HOST}
+export ORACLE_DATASTREAM_PORT?=1521
 
-export DATAFLOW_JOB_PREFIX:=oracle-to-postgres
-export TEMPLATE_IMAGE_SPEC:=gs://teleport-dataflow-staging/images/datastream-to-postgres-image-spec.json
-export DATASTREAM_ROOT_PATH:=/ora2pg/${STREAM_NAME}/
-export GCS_STREAM_PATH:=${GCS_BUCKET}${DATASTREAM_ROOT_PATH}
+export DATAFLOW_JOB_PREFIX?=oracle-to-postgres
+export TEMPLATE_IMAGE_SPEC?=gs://teleport-dataflow-staging/images/datastream-to-postgres-image-spec.json
+export DATASTREAM_ROOT_PATH?=/ora2pg/${STREAM_NAME}/
+export GCS_STREAM_PATH?=${GCS_BUCKET}${DATASTREAM_ROOT_PATH}
 
 variables:
 	@echo "Project ID: ${PROJECT_ID}"
