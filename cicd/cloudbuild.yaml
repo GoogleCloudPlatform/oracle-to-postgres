@@ -27,6 +27,6 @@ steps:
   waitFor: ['oracle']
 - id: list
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-  args: ["make", "list", "PROJECT_ID=dms-heterogeneous", "PROJECT_NUMBER=595335939776", "ORACLE_HOST=10.128.0.3", "PRIVATE_CONNECTION_NAME=projects/dms-heterogeneous/locations/us-central1/privateConnections/private-connect"]
+  args: ["make", "list", "PROJECT_ID=dms-heterogeneous", "PROJECT_NUMBER=595335939776", "CLOUD_SQL=ora2pg-demo", "ORACLE_HOST=10.128.0.3", "PRIVATE_CONNECTION_NAME=projects/dms-heterogeneous/locations/us-central1/privateConnections/private-connect"]
   waitFor: ['build']
 

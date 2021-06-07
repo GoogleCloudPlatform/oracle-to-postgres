@@ -79,11 +79,14 @@ then
 elif [ "$1" == "deploy" ]
 then
 	# Deploy to GCS
-	gsutil rm ${GCS_BUCKET}/resources/ora2pg/*
-	gsutil cp ora2pg/data/output.sql ${GCS_BUCKET}/resources/ora2pg/output.sql
+	docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
+    gsutil rm ${GCS_BUCKET}/resources/ora2pg/*
+	docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
+    gsutil cp ora2pg/data/output.sql ${GCS_BUCKET}/resources/ora2pg/output.sql
 
 	# Apply ora2pg results in CloudSQL
-	gcloud sql import sql \
-		${CLOUD_SQL} ${GCS_BUCKET}/resources/ora2pg/output.sql \
-		--user=${DATABASE_USER} --project=${PROJECT_ID} --database=postgres --quiet
+  docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
+    gcloud sql import sql \
+      ${CLOUD_SQL} ${GCS_BUCKET}/resources/ora2pg/output.sql \
+      --user=${DATABASE_USER} --project=${PROJECT_ID} --database=postgres --quiet
 fi

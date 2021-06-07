@@ -99,7 +99,7 @@ class CloudDatastreamResourceManager(object):
     if client:
       self.client = client
     else:
-      logging.info("Creating DataStream Client")
+      logging.info("Creating DataStream Client with Authorized HTTP")
       api_url = datastream_api_url or DATASTREAM_URL
       self.client = datastream.DatastreamV1alpha1(
           url=api_url, http=authorized_http, get_credentials=True)

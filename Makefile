@@ -16,6 +16,7 @@
 export PROJECT_ID?=<PROJECT_ID>
 export PROJECT_NUMBER?=<PROJECT_NUMBER>
 export REGION?=us-central1
+export CLOUDSDK_CONFIG?=~/.config/gcloud/
 
 export STREAM_NAME?=oracle-to-postgres
 export GCS_BUCKET?=gs://${PROJECT_ID}
@@ -69,7 +70,7 @@ variables:
 
 list: variables
 	@echo "List All Oracle to Postgres Objects: ${PROJECT_ID}"
-	docker run --rm datastream \
+	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm datastream \
 		--action list \
 		--project-number ${PROJECT_NUMBER} \
 		--stream-prefix ${STREAM_NAME} \
@@ -84,14 +85,15 @@ list: variables
 		--oracle-password ${ORACLE_PASSWORD} \
 		--oracle-database ${ORACLE_DATABASE} \
 		--schema-names "${ORACLE_SCHEMAS}"
-	gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}"
+	docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
+		gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}"
 	./dataflow.sh
 
 build: variables
 	echo "Build Oracle to Postgres Docker Images: ${PROJECT_ID}"
 	docker pull gcr.io/google.com/cloudsdktool/cloud-sdk:latest
-	./data_validation.sh build
 	docker build datastream_utils/ -t datastream
+	./data_validation.sh build
 	./ora2pg.sh build
 
 deploy-resources: variables
@@ -107,7 +109,7 @@ deploy-ora2pg: variables
 
 deploy-datastream: variables
 	echo "Deploy DataStream from Oracle to GCS: ${PROJECT_ID}"
-	docker run --rm datastream \
+	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm datastream \
 		--action create \
 		--project-number ${PROJECT_NUMBER} \
 		--stream-prefix ${STREAM_NAME} \
@@ -132,7 +134,7 @@ validate: variables
 
 destroy-datastream: variables
 	@echo "Tearing Down DataStream: ${PROJECT_ID}"
-	docker run --rm datastream \
+	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm datastream \
 		--action tear-down \
 		--project-number ${PROJECT_NUMBER} \
 		--stream-prefix ${STREAM_NAME} \
@@ -154,7 +156,7 @@ destroy-dataflow: variables
 
 destroy: variables
 	@echo "Tearing Down DataStream to Postgres: ${PROJECT_ID}"
-	docker run --rm datastream \
+	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm datastream \
 		--action tear-down \
 		--project-number ${PROJECT_NUMBER} \
 		--stream-prefix ${STREAM_NAME} \

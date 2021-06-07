@@ -12,4 +12,7 @@ RUN apk update \
 RUN mkdir /oracle
 COPY oracle/*.rpm /oracle/
 
+RUN mkdir /root/.config/
+COPY gcloud/ /root/.config/gcloud/
+
 CMD ["make"]
