@@ -16,7 +16,7 @@
 export PROJECT_ID?=<PROJECT_ID>
 export PROJECT_NUMBER?=<PROJECT_NUMBER>
 export REGION?=us-central1
-export CLOUDSDK_CONFIG?=~/.config/gcloud/
+export CLOUDSDK_CONFIG?=${HOME}/.config/gcloud/
 
 export STREAM_NAME?=oracle-to-postgres
 export GCS_BUCKET?=gs://${PROJECT_ID}
