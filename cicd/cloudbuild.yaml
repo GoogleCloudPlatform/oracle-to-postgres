@@ -21,13 +21,17 @@ steps:
 - id: oracle
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
   args: ["mv", "/oracle", "/workspace/"]
-- id: build
+- id: temp
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-  args: ["make", "build"]
+  args: ["gcloud", "sql", "instances", "list"]
   waitFor: ["oracle"]
-- id: list
-  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-  args: ["make", "list", "PROJECT_ID=dms-heterogeneous", "PROJECT_NUMBER=595335939776", "CLOUD_SQL=ora2pg-demo", "ORACLE_HOST=10.128.0.3", "PRIVATE_CONNECTION_NAME=projects/dms-heterogeneous/locations/us-central1/privateConnections/private-connect"]
-  env:
-  - 'CLOUDSDK_CONFIG=/root/.config/gcloud/'
-  waitFor: ["build"]
+# - id: build
+#   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+#   args: ["make", "build"]
+#   waitFor: ["oracle"]
+# - id: list
+#   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+#   args: ["make", "list", "PROJECT_ID=dms-heterogeneous", "PROJECT_NUMBER=595335939776", "CLOUD_SQL=ora2pg-demo", "ORACLE_HOST=10.128.0.3", "PRIVATE_CONNECTION_NAME=projects/dms-heterogeneous/locations/us-central1/privateConnections/private-connect"]
+#   env:
+#   - 'CLOUDSDK_CONFIG=/root/.config/gcloud/'
+#   waitFor: ["build"]
