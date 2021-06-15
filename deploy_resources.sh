@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Ensure current user is the owner for all files
+sudo chown -R $USER:$USER .
+
 # Enable All Services Required
 docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
   gcloud services enable \
@@ -32,6 +35,17 @@ docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.con
 SQL_INSTANCE=$(docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}")
 if [ "${SQL_INSTANCE}" == "" ]
 then
+    docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
+      gcloud compute addresses create google-managed-services-postgres \
+          --global --purpose=VPC_PEERING \
+          --prefix-length=16 --network=default \
+          --project=${PROJECT_ID}
+    docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
+      gcloud services vpc-peerings connect \
+          --service=servicenetworking.googleapis.com \
+          --ranges=google-managed-services-postgres \
+          --network=default \
+          --project=${PROJECT_ID}
     docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
       gcloud beta sql instances create ${CLOUD_SQL} \
         --database-version=POSTGRES_11 \
