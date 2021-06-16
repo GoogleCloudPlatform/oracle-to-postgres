@@ -50,8 +50,8 @@ export ORACLE_DATASTREAM_PORT?=1521
 
 export DATAFLOW_JOB_PREFIX?=oracle-to-postgres
 export TEMPLATE_IMAGE_SPEC?=gs://teleport-dataflow-staging/images/datastream-to-postgres-image-spec.json
-export DATASTREAM_ROOT_PATH?=/ora2pg/${STREAM_NAME}/
-export GCS_STREAM_PATH?=${GCS_BUCKET}${DATASTREAM_ROOT_PATH}
+export DATASTREAM_ROOT_PATH?=ora2pg/${STREAM_NAME}/
+export GCS_STREAM_PATH?=${GCS_BUCKET}/${DATASTREAM_ROOT_PATH}
 
 variables:
 	@echo "Project ID: ${PROJECT_ID}"
@@ -77,7 +77,7 @@ list: variables
 		--source-prefix "oracle-${STREAM_NAME}" \
 		--gcs-prefix "gcs-${STREAM_NAME}" \
 		--gcs-bucket ${GCS_BUCKET} \
-		--gcs-root-path "/ora2pg/" \
+		--gcs-root-path "/${DATASTREAM_ROOT_PATH}" \
 		--private-connection ${PRIVATE_CONNECTION_NAME} \
 		--oracle-host ${ORACLE_DATASTREAM_HOST} \
 		--oracle-port ${ORACLE_DATASTREAM_PORT} \
@@ -116,7 +116,7 @@ deploy-datastream: variables
 		--source-prefix "oracle-${STREAM_NAME}" \
 		--gcs-prefix "gcs-${STREAM_NAME}" \
 		--gcs-bucket ${GCS_BUCKET} \
-		--gcs-root-path "${DATASTREAM_ROOT_PATH}" \
+		--gcs-root-path "/${DATASTREAM_ROOT_PATH}" \
 		--private-connection ${PRIVATE_CONNECTION_NAME} \
 		--oracle-host ${ORACLE_DATASTREAM_HOST} \
 		--oracle-port ${ORACLE_DATASTREAM_PORT} \
@@ -141,7 +141,7 @@ destroy-datastream: variables
 		--source-prefix "oracle-${STREAM_NAME}" \
 		--gcs-prefix "gcs-${STREAM_NAME}" \
 		--gcs-bucket ${GCS_BUCKET} \
-		--gcs-root-path "${DATASTREAM_ROOT_PATH}" \
+		--gcs-root-path "/${DATASTREAM_ROOT_PATH}" \
 		--private-connection ${PRIVATE_CONNECTION_NAME} \
 		--oracle-host ${ORACLE_DATASTREAM_HOST} \
 		--oracle-port ${ORACLE_DATASTREAM_PORT} \
@@ -163,7 +163,7 @@ destroy: variables
 		--source-prefix "oracle-${STREAM_NAME}" \
 		--gcs-prefix "gcs-${STREAM_NAME}" \
 		--gcs-bucket ${GCS_BUCKET} \
-		--gcs-root-path "${DATASTREAM_ROOT_PATH}" \
+		--gcs-root-path "/${DATASTREAM_ROOT_PATH}" \
 		--private-connection ${PRIVATE_CONNECTION_NAME} \
 		--oracle-host ${ORACLE_DATASTREAM_HOST} \
 		--oracle-port ${ORACLE_DATASTREAM_PORT} \

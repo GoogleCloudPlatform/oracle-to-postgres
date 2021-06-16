@@ -15,6 +15,7 @@
 
 
 # Dataflow Config Vars
+sudo apt-get install uuid-runtime -y
 NEW_UUID=$(uuidgen | head -c 6 | awk '{print tolower($0)}')
 export DATAFLOW_JOB_NAME="${DATAFLOW_JOB_PREFIX}-${NEW_UUID}"
 export DATABASE_HOST=$(docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}" | awk '{print $6;}')

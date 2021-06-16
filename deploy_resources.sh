@@ -14,6 +14,7 @@
 # limitations under the License.
 
 # Ensure current user is the owner for all files
+mkdir ora2pg/data/
 sudo chown -R $USER:$USER .
 
 # Enable All Services Required
