@@ -49,7 +49,7 @@ export ORACLE_DATASTREAM_HOST?=${ORACLE_HOST}
 export ORACLE_DATASTREAM_PORT?=1521
 
 export DATAFLOW_JOB_PREFIX?=oracle-to-postgres
-export TEMPLATE_IMAGE_SPEC?=gs://teleport-dataflow-staging/images/datastream-to-postgres-image-spec.json
+export TEMPLATE_IMAGE_SPEC?=gs://dataflow-templates/latest/flex/Cloud_Datastream_to_SQL
 export DATASTREAM_ROOT_PATH?=ora2pg/${STREAM_NAME}/
 export GCS_STREAM_PATH?=${GCS_BUCKET}/${DATASTREAM_ROOT_PATH}
 
