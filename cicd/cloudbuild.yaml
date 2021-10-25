@@ -35,11 +35,11 @@ steps:
   waitFor: ["ora2pg"]
 - id: deploy-datastream
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-  args: ["echo", "TODO"]
+  args: ["make", "deploy-datastream"]
   waitFor: ["deploy-ora2pg"]
 - id: deploy-dataflow
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-  args: ["echo", "TODO"]
+  args: ["make", "deploy-dataflow"]
   waitFor: ["deploy-datastream"]
 - id: sleep-for-run
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
@@ -49,6 +49,10 @@ steps:
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
   args: ["make", "validate"]
   waitFor: ["sleep-for-run"]
+- id: destroy
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ["make", "destroy"]
+  waitFor: ["validate"]
 options:
   env:
   - 'PROJECT_ID=${PROJECT_ID}'

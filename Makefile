@@ -38,7 +38,9 @@ export ORACLE_DSN:=dbi:Oracle:host=${ORACLE_HOST};sid=${ORACLE_DATABASE};port=${
 
 # The PrivateConnection, in the format:
 # projects/${PROJECT_ID}/locations/${REGION}/privateConnections/<PRIVATE_CONNECTION>
-export PRIVATE_CONNECTION_NAME?=""
+export PRIVATE_CONNECTION_NAME?=
+export ORACLE_CP_NAME?="oracle-${STREAM_NAME}"
+export GCS_CP_NAME?="gcs-${STREAM_NAME}"
 
 # Desired Oracle Schemas and object types to replicate
 # For schemas, leave blank for all.
@@ -80,22 +82,8 @@ variables:
 
 list: variables
 	@echo "List All Oracle to Postgres Objects: ${PROJECT_ID}"
-	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm ${DOCKER_DATASTREAM} \
-		--action list \
-		--project-number ${PROJECT_NUMBER} \
-		--stream-prefix ${STREAM_NAME} \
-		--source-prefix "oracle-${STREAM_NAME}" \
-		--gcs-prefix "gcs-${STREAM_NAME}" \
-		--gcs-bucket ${GCS_BUCKET} \
-		--gcs-root-path "/${DATASTREAM_ROOT_PATH}" \
-		--private-connection ${PRIVATE_CONNECTION_NAME} \
-		--oracle-host ${ORACLE_DATASTREAM_HOST} \
-		--oracle-port ${ORACLE_DATASTREAM_PORT} \
-		--oracle-user ${ORACLE_USER} \
-		--oracle-password ${ORACLE_PASSWORD} \
-		--oracle-database ${ORACLE_DATABASE} \
-		--schema-names "${ORACLE_SCHEMAS}"
-		gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}"
+	gcloud beta datastream streams list --location=${REGION} --project=${PROJECT_ID} --quiet
+	gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}"
 	./dataflow.sh
 
 build: variables
@@ -126,21 +114,17 @@ deploy-ora2pg: variables
 
 deploy-datastream: variables
 	echo "Deploy DataStream from Oracle to GCS: ${PROJECT_ID}"
-	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm ${DOCKER_DATASTREAM} \
-		--action create \
-		--project-number ${PROJECT_NUMBER} \
-		--stream-prefix ${STREAM_NAME} \
-		--source-prefix "oracle-${STREAM_NAME}" \
-		--gcs-prefix "gcs-${STREAM_NAME}" \
-		--gcs-bucket ${GCS_BUCKET} \
-		--gcs-root-path "/${DATASTREAM_ROOT_PATH}" \
-		--private-connection ${PRIVATE_CONNECTION_NAME} \
-		--oracle-host ${ORACLE_DATASTREAM_HOST} \
-		--oracle-port ${ORACLE_DATASTREAM_PORT} \
-		--oracle-user ${ORACLE_USER} \
-		--oracle-password ${ORACLE_PASSWORD} \
-		--oracle-database ${ORACLE_DATABASE} \
-		--schema-names "${ORACLE_SCHEMAS}"
+	# Create Connection Profiles
+	gcloud beta datastream connection-profiles create ${ORACLE_CP_NAME} --display-name ${ORACLE_CP_NAME} --type ORACLE --database-service=${ORACLE_DATABASE} --oracle-hostname=${ORACLE_DATASTREAM_HOST} --oracle-port=${ORACLE_DATASTREAM_PORT} --oracle-username=${ORACLE_USER} --oracle-password=${ORACLE_PASSWORD} --private-connection-name=${PRIVATE_CONNECTION_NAME} --location=${REGION} --project=${PROJECT_ID} --quiet || true
+	gcloud beta datastream connection-profiles create ${GCS_CP_NAME} --display-name ${GCS_CP_NAME} --type GOOGLE-CLOUD-STORAGE --bucket-name "${PROJECT_ID}" --root-path "/${DATASTREAM_ROOT_PATH}" --location=${REGION} --project=${PROJECT_ID} --quiet || true
+
+	# Create & Start Datastream Stream
+	gcloud beta datastream streams create ${STREAM_NAME} --display-name ${STREAM_NAME} --backfill-all \
+	--source-name="${ORACLE_CP_NAME}" --oracle-source-config=datastream_utils/source_config.json --oracle-excluded-objects=datastream_utils/source_excluded_objects.json \
+	--destination-name="${GCS_CP_NAME}" --gcs-destination-config=datastream_utils/destination_config.json \
+	--location=${REGION} --project=${PROJECT_ID} --quiet || true
+	sleep 20
+	gcloud beta datastream streams update ${STREAM_NAME} --state=RUNNING --update-mask=state --location=${REGION} --project=${PROJECT_ID} --quiet || true
 
 deploy-dataflow: variables
 	echo "Deploy Dataflow from GCS to Postgres: ${PROJECT_ID}"
@@ -151,43 +135,14 @@ validate: variables
 
 destroy-datastream: variables
 	@echo "Tearing Down DataStream: ${PROJECT_ID}"
-	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm ${DOCKER_DATASTREAM} \
-		--action tear-down \
-		--project-number ${PROJECT_NUMBER} \
-		--stream-prefix ${STREAM_NAME} \
-		--source-prefix "oracle-${STREAM_NAME}" \
-		--gcs-prefix "gcs-${STREAM_NAME}" \
-		--gcs-bucket ${GCS_BUCKET} \
-		--gcs-root-path "/${DATASTREAM_ROOT_PATH}" \
-		--private-connection ${PRIVATE_CONNECTION_NAME} \
-		--oracle-host ${ORACLE_DATASTREAM_HOST} \
-		--oracle-port ${ORACLE_DATASTREAM_PORT} \
-		--oracle-user ${ORACLE_USER} \
-		--oracle-password ${ORACLE_PASSWORD} \
-		--oracle-database ${ORACLE_DATABASE} \
-		--schema-names "${ORACLE_SCHEMAS}"
+	gcloud beta datastream streams delete ${STREAM_NAME} --location=${REGION} --project=${PROJECT_ID} --quiet
+	gcloud beta datastream connection-profiles delete ${ORACLE_CP_NAME} --location=${REGION} --project=${PROJECT_ID} --quiet
+	gcloud beta datastream connection-profiles delete ${GCS_CP_NAME} --location=${REGION} --project=${PROJECT_ID} --quiet
 
 destroy-dataflow: variables
 	@echo "Tearing Down Dataflow: ${PROJECT_ID}"
 	./dataflow.sh destroy
 
-destroy: variables
+destroy: variables destroy-dataflow destroy-datastream
 	@echo "Tearing Down DataStream to Postgres: ${PROJECT_ID}"
-	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm ${DOCKER_DATASTREAM} \
-		--action tear-down \
-		--project-number ${PROJECT_NUMBER} \
-		--stream-prefix ${STREAM_NAME} \
-		--source-prefix "oracle-${STREAM_NAME}" \
-		--gcs-prefix "gcs-${STREAM_NAME}" \
-		--gcs-bucket ${GCS_BUCKET} \
-		--gcs-root-path "/${DATASTREAM_ROOT_PATH}" \
-		--private-connection ${PRIVATE_CONNECTION_NAME} \
-		--oracle-host ${ORACLE_DATASTREAM_HOST} \
-		--oracle-port ${ORACLE_DATASTREAM_PORT} \
-		--oracle-user ${ORACLE_USER} \
-		--oracle-password ${ORACLE_PASSWORD} \
-		--oracle-database ${ORACLE_DATABASE} \
-		--schema-names "${ORACLE_SCHEMAS}"
 	gsutil -m rm ${GCS_STREAM_PATH}**
-	./dataflow.sh destroy
-	./data_validation.sh destroy

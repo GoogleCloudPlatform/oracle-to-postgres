@@ -1,0 +1,6 @@
+{
+"path": "",
+"file_rotation_mb":5,
+"file_rotation_interval":"15s",
+"avro_file_format": {}
+}
