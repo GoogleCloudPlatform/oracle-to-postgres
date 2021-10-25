@@ -43,7 +43,7 @@ steps:
   waitFor: ["deploy-datastream"]
 - id: sleep-for-run
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-  args: ["sleep", "5"]
+  args: ["sleep", "400"]
   waitFor: ["deploy-dataflow"]
 - id: validate
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
