@@ -18,20 +18,47 @@
 
 timeout: 7200s
 steps:
-- id: oracle
-  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-  args: ["mv", "/oracle", "/workspace/"]
-- id: temp
-  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-  args: ["gcloud", "sql", "instances", "list"]
-  waitFor: ["oracle"]
-# - id: build
+# - id: cloud-build
 #   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-#   args: ["make", "build"]
-#   waitFor: ["oracle"]
-# - id: list
-#   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-#   args: ["make", "list", "PROJECT_ID=dms-heterogeneous", "PROJECT_NUMBER=595335939776", "CLOUD_SQL=ora2pg-demo", "ORACLE_HOST=10.128.0.3", "PRIVATE_CONNECTION_NAME=projects/dms-heterogeneous/locations/us-central1/privateConnections/private-connect"]
-#   env:
-#   - 'CLOUDSDK_CONFIG=/root/.config/gcloud/'
-#   waitFor: ["build"]
+#   args: ["make", "cloud-build"]
+- id: deploy-resources
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ['make', 'deploy-resources']
+  # waitFor: ["cloud-build"]
+- id: ora2pg
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ['make', 'ora2pg-drops']
+  waitFor: ["deploy-resources"]
+- id: deploy-ora2pg
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ["make", "deploy-ora2pg"]
+  waitFor: ["ora2pg"]
+- id: deploy-datastream
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ["echo", "TODO"]
+  waitFor: ["deploy-ora2pg"]
+- id: deploy-dataflow
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ["echo", "TODO"]
+  waitFor: ["deploy-datastream"]
+- id: sleep-for-run
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ["sleep", "5"]
+  waitFor: ["deploy-dataflow"]
+- id: validate
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ["make", "validate"]
+  waitFor: ["sleep-for-run"]
+options:
+  env:
+  - 'PROJECT_ID=${PROJECT_ID}'
+  - 'PROJECT_NUMBER=${PROJECT_NUMBER}'
+  - 'DATABASE_HOST=10.128.0.26'
+  - 'ORACLE_HOST=10.128.0.26'
+  - 'CLOUD_SQL=ora2pg-demo'
+  - 'PRIVATE_CONNECTION_NAME="projects/dms-heterogeneous/locations/us-central1/privateConnections/default-private-connect"'
+  - 'DOCKER_DATASTREAM=gcr.io/${PROJECT_ID}/datastream'
+  - 'DOCKER_DVT=gcr.io/${PROJECT_ID}/data-validation'
+  - 'DOCKER_ORA2PG=gcr.io/${PROJECT_ID}/ora2pg'
+  pool:
+    name: 'projects/${PROJECT_ID}/locations/us-central1/workerPools/build-pool'

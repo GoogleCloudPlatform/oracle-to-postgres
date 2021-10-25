@@ -26,6 +26,7 @@ export PUBSUB_SUBSCRIPTION?=${PUBSUB_TOPIC}-subscription
 export CLOUD_SQL?=<Cloud SQL>
 export DATABASE_USER?=postgres
 export DATABASE_PASSWORD?=postgres
+export DATABASE_HOST?=
 
 export ORACLE_HOST?=<ORACLE_HOST>
 export ORACLE_PORT?=1521
@@ -53,6 +54,15 @@ export TEMPLATE_IMAGE_SPEC?=gs://dataflow-templates/latest/flex/Cloud_Datastream
 export DATASTREAM_ROOT_PATH?=ora2pg/${STREAM_NAME}/
 export GCS_STREAM_PATH?=${GCS_BUCKET}/${DATASTREAM_ROOT_PATH}
 
+# Data Validation
+# export PSO_DV_CONFIG_HOME?=${GCS_BUCKET}/dvt/
+
+# Docker Image Tags
+export DOCKER_GCLOUD?=gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+export DOCKER_DATASTREAM?=datastream
+export DOCKER_DVT?=data-validation
+export DOCKER_ORA2PG?=ora2pg
+
 variables:
 	@echo "Project ID: ${PROJECT_ID}"
 	@echo "CloudSQL Output: ${CLOUD_SQL}"
@@ -70,7 +80,7 @@ variables:
 
 list: variables
 	@echo "List All Oracle to Postgres Objects: ${PROJECT_ID}"
-	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm datastream \
+	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm ${DOCKER_DATASTREAM} \
 		--action list \
 		--project-number ${PROJECT_NUMBER} \
 		--stream-prefix ${STREAM_NAME} \
@@ -85,16 +95,20 @@ list: variables
 		--oracle-password ${ORACLE_PASSWORD} \
 		--oracle-database ${ORACLE_DATABASE} \
 		--schema-names "${ORACLE_SCHEMAS}"
-	docker run --env CLOUDSDK_CONFIG=/root/.config/ -v ${CLOUDSDK_CONFIG}:/root/.config gcr.io/google.com/cloudsdktool/cloud-sdk:latest \
 		gcloud sql instances list --project=${PROJECT_ID} | grep "${CLOUD_SQL}"
 	./dataflow.sh
 
 build: variables
 	echo "Build Oracle to Postgres Docker Images: ${PROJECT_ID}"
-	docker pull gcr.io/google.com/cloudsdktool/cloud-sdk:latest
-	docker build datastream_utils/ -t datastream
-	./data_validation.sh build
-	./ora2pg.sh build
+	docker build datastream_utils/ -t ${DOCKER_DATASTREAM}
+	docker build . -f DataValidationDockerfile -t ${DOCKER_DVT}
+	docker build . -f Ora2PGDockerfile -t ${DOCKER_ORA2PG}
+
+cloud-build: variables build
+	echo "Push Ora2PG Docker Images to GCR: ${PROJECT_ID}"
+	docker push ${DOCKER_DATASTREAM}
+	docker push ${DOCKER_DVT}
+	docker push ${DOCKER_ORA2PG}
 
 deploy-resources: variables
 	echo "Deploy Oracle to Postgres Resources: ${PROJECT_ID}"
@@ -104,12 +118,15 @@ deploy-resources: variables
 ora2pg: variables
 	./ora2pg.sh run
 
+ora2pg-drops: variables ora2pg
+	sed -i '1s/^/DROP SCHEMA IF EXISTS hr CASCADE;\n/' ora2pg/data/output.sql
+
 deploy-ora2pg: variables
 	./ora2pg.sh deploy
 
 deploy-datastream: variables
 	echo "Deploy DataStream from Oracle to GCS: ${PROJECT_ID}"
-	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm datastream \
+	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm ${DOCKER_DATASTREAM} \
 		--action create \
 		--project-number ${PROJECT_NUMBER} \
 		--stream-prefix ${STREAM_NAME} \
@@ -134,7 +151,7 @@ validate: variables
 
 destroy-datastream: variables
 	@echo "Tearing Down DataStream: ${PROJECT_ID}"
-	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm datastream \
+	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm ${DOCKER_DATASTREAM} \
 		--action tear-down \
 		--project-number ${PROJECT_NUMBER} \
 		--stream-prefix ${STREAM_NAME} \
@@ -156,7 +173,7 @@ destroy-dataflow: variables
 
 destroy: variables
 	@echo "Tearing Down DataStream to Postgres: ${PROJECT_ID}"
-	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm datastream \
+	docker run --env GOOGLE_APPLICATION_CREDENTIALS=/root/.config/application_default_credentials.json -v ${CLOUDSDK_CONFIG}:/root/.config --rm ${DOCKER_DATASTREAM} \
 		--action tear-down \
 		--project-number ${PROJECT_NUMBER} \
 		--stream-prefix ${STREAM_NAME} \
