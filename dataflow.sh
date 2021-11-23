@@ -27,7 +27,7 @@ then
     --project="${PROJECT_ID}" --region="${REGION}" \
     --enable-streaming-engine \
     --template-file-gcs-location="${TEMPLATE_IMAGE_SPEC}" \
-    --parameters gcsPubSubSubscription="projects/${PROJECT_ID}/subscriptions/${PUBSUB_SUBSCRIPTION}",inputFilePattern="${GCS_STREAM_PATH}",databaseHost=${DATABASE_HOST},databasePort="5432",databaseUser=${DATABASE_USER},databasePassword=${DATABASE_PASSWORD},maxNumWorkers=10,autoscalingAlgorithm="THROUGHPUT_BASED"
+    --parameters schemaMap=":",gcsPubSubSubscription="projects/${PROJECT_ID}/subscriptions/${PUBSUB_SUBSCRIPTION}",inputFilePattern="${GCS_STREAM_PATH}",databaseHost=${DATABASE_HOST},databasePort="5432",databaseUser=${DATABASE_USER},databasePassword=${DATABASE_PASSWORD},maxNumWorkers=10,autoscalingAlgorithm="THROUGHPUT_BASED"
 elif [ "$1" == "destroy" ]
 then
   # Kill Running Jobs
