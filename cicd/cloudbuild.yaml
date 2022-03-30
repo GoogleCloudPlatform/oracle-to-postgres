@@ -64,5 +64,6 @@ options:
   - 'DOCKER_DATASTREAM=gcr.io/${PROJECT_ID}/datastream'
   - 'DOCKER_DVT=gcr.io/${PROJECT_ID}/data-validation'
   - 'DOCKER_ORA2PG=gcr.io/${PROJECT_ID}/ora2pg'
+  - 'ORACLE_SCHEMAS=HR'
   pool:
     name: 'projects/${PROJECT_ID}/locations/us-central1/workerPools/build-pool'
