@@ -18,13 +18,13 @@
 
 timeout: 7200s
 steps:
-# - id: cloud-build
-#   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
-#   args: ["make", "cloud-build"]
+- id: cloud-build
+  name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
+  args: ["make", "cloud-build"]
 - id: deploy-resources
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
   args: ['make', 'deploy-resources']
-  # waitFor: ["cloud-build"]
+  waitFor: ["cloud-build"]
 - id: ora2pg
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
   args: ['make', 'ora2pg-drops']
