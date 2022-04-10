@@ -6,7 +6,7 @@ RUN apt-get update \
 && apt-get clean
 
 RUN pip install --upgrade pip
-RUN pip install google-pso-data-validator
+RUN pip install google-pso-data-validator==1.6.0
 RUN pip install cx_Oracle
 
 # Install Oracle12 ODBC required packages
